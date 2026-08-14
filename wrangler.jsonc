@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ebliss-core",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-14",
+  "observability": {
+    "enabled": true
+  }
+}
