@@ -1,7 +1,9 @@
 import { CapabilityRegistry } from "./application";
 import { AGENT_MODES, FACILITATOR_BOUNDARY, type ImpactAnalysis } from "./agent";
+import { DefaultAuthorizer, AUTHORIZATION_ACTIONS, type AuthorizationRequest } from "./authorization";
 
 export const registry = new CapabilityRegistry();
+export const authorizer = new DefaultAuthorizer();
 
 export default {
   async fetch(request: Request): Promise<Response> {
@@ -24,7 +26,16 @@ export default {
         evidenceStates: ["observed", "derived", "uncertain", "speculative", "proposed"],
         facilitatorBoundary: FACILITATOR_BOUNDARY,
         lifecycle: ["context", "impact-analysis", "discussion", "authorization", "action", "verification"],
+        authorizationActions: AUTHORIZATION_ACTIONS,
       });
+    }
+
+    if (url.pathname === "/agent/authorize" && request.method === "POST") {
+      const body = (await request.json()) as Partial<AuthorizationRequest>;
+      if (!body.subjectId || !body.action || !body.resourceType || !body.resourceId) {
+        return Response.json({ error: "subjectId, action, resourceType, and resourceId are required" }, { status: 400 });
+      }
+      return Response.json(await authorizer.authorize(body as AuthorizationRequest));
     }
 
     if (url.pathname === "/agent/impact" && request.method === "POST") {
@@ -35,11 +46,9 @@ export default {
         external?: ImpactAnalysis["external"];
         unknown?: ImpactAnalysis["unknown"];
       };
-
       if (!body.resourceId) {
         return Response.json({ error: "resourceId is required" }, { status: 400 });
       }
-
       return Response.json({
         resourceId: body.resourceId,
         direct: body.direct ?? [],
