@@ -30,6 +30,8 @@ export default {
   },
 };
 
+export * from "./agent";
 export * from "./application";
+export * from "./authorization";
 export * from "./capabilities";
 export * from "./protocols";
